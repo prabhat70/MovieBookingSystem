@@ -1,11 +1,11 @@
 ﻿using AuthenticationPlugin;
 using Microsoft.EntityFrameworkCore;
-using MovieBookingSystem.Authentication.Authentication;
-using MovieBookingSystem.Authentication.DTO;
-using MovieBookingSystem.Authentication.IRepository;
-using MovieBookingSystem.Authentication.Models;
+using UserService.DAL;
+using UserService.DTO;
+using UserService.IRepository;
+using UserService.Models;
 
-namespace MovieBookingSystem.Authentication.Repository
+namespace UserService.Repository
 {
     public class UserRepository : IUserRepository
     {
@@ -16,10 +16,10 @@ namespace MovieBookingSystem.Authentication.Repository
             _userContext = userContext;
         }
 
-        public async Task<bool> ValidateUserEmail(UserDetails user)
+        public async Task<bool> ValidateUserEmail(string Email)
         {
             var email = await _userContext.User
-                .Where(u => u.Email == user.Email)
+                .Where(u => u.Email == Email)
                 .Select(u => u.Email)
                 .FirstOrDefaultAsync();
 
@@ -30,7 +30,7 @@ namespace MovieBookingSystem.Authentication.Repository
             return true;
         }
 
-        public async Task<string> AddUserDetails(UserDetails user)
+        public async Task<string> AddUserDetails(UserRegistration user)
         {
             _userContext.User.Add(
                 new User
@@ -43,14 +43,25 @@ namespace MovieBookingSystem.Authentication.Repository
             await _userContext.SaveChangesAsync();
             return "Details added successfully";
         }
-        
-        public async Task<string> GetHashedPassword(string email)
+
+        public async Task<User> GetUserDetails(string email)
         {
-            var hashedPassword = await _userContext.User
+            var userDetails = await _userContext.User
                 .Where(u => u.Email == email)
-                .Select(u => u.Password)
                 .FirstAsync();
-            return hashedPassword;
+            return userDetails;
+        }
+
+        public async Task<bool> DeactivateAccount(string email)
+        {
+            var response = await _userContext.User
+                .Where(u => u.Email == email)
+                .ExecuteDeleteAsync();
+            if (response > 0)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace MovieBookingSystem.TheaterService.Models
+﻿namespace TheaterService.Models
 {
     public class Show
     {
@@ -6,9 +6,9 @@
         public string Title { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
-
-        // Navigation properties
-        public ICollection<Seat> Seats { get; set; }
-        public ICollection<Booking> Bookings { get; set; }
+        public string City { get; set; }
+        public string TheaterName { get; set; }
+        public ICollection<Seat> Seats { get; set; } = new List<Seat>();
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }
 }

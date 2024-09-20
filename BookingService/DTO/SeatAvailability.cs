@@ -1,6 +1,6 @@
-﻿namespace TheaterService.Models
+﻿namespace BookingService.DTO
 {
-    public class Seat
+    public class SeatAvailability
     {
         public int SeatId { get; set; }
         public string Row { get; set; }
@@ -8,8 +8,5 @@
         public bool IsAvailable { get; set; }
 
         public int ShowId { get; set; }
-
-        public Show Show { get; set; }
-        public ICollection<Booking> Bookings { get; set; }
     }
 }

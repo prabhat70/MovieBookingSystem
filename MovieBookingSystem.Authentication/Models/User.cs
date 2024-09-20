@@ -1,4 +1,4 @@
-﻿namespace MovieBookingSystem.Authentication.Models
+﻿namespace UserService.Models
 {
     public class User
     {

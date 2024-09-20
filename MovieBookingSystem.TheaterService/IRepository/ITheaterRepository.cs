@@ -1,14 +1,15 @@
-﻿using MovieBookingSystem.TheaterService.Models;
+﻿using TheaterService.DTO;
+using TheaterService.Models;
 
-namespace MovieBookingSystem.TheaterService.IRepository
+namespace TheaterService.IRepository
 {
     public interface ITheaterRepository
     {
-        void AllocateSeatInventory(int showId, List<Seat> seats);
+        void AllocateSeatInventory(int showId, List<SeatDetails> seats);
         bool ReserveSeat(int showId, int seatId);
         bool CancelReservation(int showId, int seatId);
-        List<Seat> GetAvailableSeats(int showId);
-        void AddShow(Show show);
+        List<SeatDetails> GetAvailableSeats(int showId);
+        void AddShow(ShowDetails showDetails);
         Show GetShowById(int showId);
     }
 }

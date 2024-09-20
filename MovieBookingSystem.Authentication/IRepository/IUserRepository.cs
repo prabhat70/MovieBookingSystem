@@ -1,12 +1,13 @@
-﻿using MovieBookingSystem.Authentication.DTO;
-using MovieBookingSystem.Authentication.Models;
+﻿using UserService.DTO;
+using UserService.Models;
 
-namespace MovieBookingSystem.Authentication.IRepository
+namespace UserService.IRepository
 {
     public interface IUserRepository
     {
-        Task<bool> ValidateUserEmail(UserDetails user);
-        Task<string> AddUserDetails(UserDetails user);
-        Task<string> GetHashedPassword(string email);
+        Task<bool> ValidateUserEmail(string Email);
+        Task<string> AddUserDetails(UserRegistration user);
+        Task<User> GetUserDetails(string email);
+        Task<bool> DeactivateAccount(string email);
     }
 }

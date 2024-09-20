@@ -1,16 +1,15 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using MovieBookingSystem.Authentication.Authentication;
-using MovieBookingSystem.Authentication.IRepository;
-using MovieBookingSystem.Authentication.Repository;
 using System.Text;
+using UserService.DAL;
+using UserService.IRepository;
+using UserService.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<UserContext>(option => option.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=Test;Trusted_Connection=true;Integrated Security=True;"));
+builder.Services.AddDbContext<UserContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
  .AddJwtBearer(options =>
  {
@@ -20,9 +19,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
          ValidateAudience = true,
          ValidateLifetime = true,
          ValidateIssuerSigningKey = true,
-         ValidIssuer = "localhost.com",
-         ValidAudience = "localhost.com",
-         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ASPNETCORESECRETKEYFORAUTHENTICATIONANDAUTHORIZATION")),
+         ValidIssuer = builder.Configuration["Tokens:Issuer"],
+         ValidAudience = builder.Configuration["Tokens:Audience"],
+         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Tokens:Key"])),
      };
  });
 

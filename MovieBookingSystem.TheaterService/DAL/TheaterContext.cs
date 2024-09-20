@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MovieBookingSystem.TheaterService.Models;
+using TheaterService.Models;
 
-namespace MovieBookingSystem.TheaterService.DAL
+namespace TheaterService.DAL
 {
-    public class TheaterServiceContext : DbContext
+    public class TheaterContext : DbContext
     {
-        public TheaterServiceContext(DbContextOptions<TheaterServiceContext> options) : base(options)
+        public TheaterContext(DbContextOptions<TheaterContext> options) : base(options)
         {
             
         }
@@ -18,7 +18,6 @@ namespace MovieBookingSystem.TheaterService.DAL
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Define entity configurations (optional)
             modelBuilder.Entity<User>(entity =>
             {
                 entity.ToTable("User");

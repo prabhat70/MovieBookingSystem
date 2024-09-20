@@ -1,28 +1,36 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using MovieBookingSystem.TheaterService.DAL;
-using MovieBookingSystem.TheaterService.IRepository;
-using MovieBookingSystem.TheaterService.Models;
+using TheaterService.DAL;
+using TheaterService.DTO;
+using TheaterService.IRepository;
+using TheaterService.Models;
 
-namespace MovieBookingSystem.TheaterService.Repository
+namespace TheaterService.Repository
 {
     public class TheaterRepository : ITheaterRepository
     {
-        private readonly TheaterServiceContext _theaterServiceContext;
+        private readonly TheaterContext _theaterServiceContext;
 
-        public TheaterRepository(TheaterServiceContext theaterServiceContext)
+        public TheaterRepository(TheaterContext theaterServiceContext)
         {
             _theaterServiceContext = theaterServiceContext;
         }
-        // Allocate seat inventory for a show
-        public void AllocateSeatInventory(int showId, List<Seat> seats)
+        
+        public void AllocateSeatInventory(int showId, List<SeatDetails> seats)
         {
             var show = _theaterServiceContext.Shows.Find(showId);
             if (show != null)
             {
                 foreach (var seat in seats)
                 {
-                    show.Seats.Add(seat);  // Assuming Seats has an Add method
+                    show.Seats.Add(
+                        new Seat
+                        {
+                            Row= seat.Row,
+                            Number = seat.Number,
+                            IsAvailable = seat.IsAvailable,
+                            ShowId = showId
+                        });
                 }
                 _theaterServiceContext.SaveChanges();
             }
@@ -32,10 +40,10 @@ namespace MovieBookingSystem.TheaterService.Repository
             }
         }
 
-        // Reserve a seat for a specific show
         public bool ReserveSeat(int showId, int seatId)
         {
-            var seat = _theaterServiceContext.Seats.FirstOrDefault(s => s.SeatId == seatId && s.ShowId == showId && s.IsAvailable);
+            var seat = _theaterServiceContext.Seats
+                .FirstOrDefault(s => s.SeatId == seatId && s.ShowId == showId && s.IsAvailable);
             if (seat != null)
             {
                 seat.IsAvailable = false;
@@ -58,23 +66,40 @@ namespace MovieBookingSystem.TheaterService.Repository
             return false;
         }
 
-        // Get all available seats for a show
-        public List<Seat> GetAvailableSeats(int showId)
+        public List<SeatDetails> GetAvailableSeats(int showId)
         {
-            return _theaterServiceContext.Seats.Where(s => s.ShowId == showId && s.IsAvailable).ToList();
+            var availableSeats = _theaterServiceContext.Seats.Where(s => s.ShowId == showId && s.IsAvailable).ToList();
+            var seatDetails = availableSeats.Select(s => new SeatDetails
+            {
+                SeatId = s.SeatId,
+                Row = s.Row,
+                Number = s.Number,
+                IsAvailable = s.IsAvailable
+            }).ToList();
+            return seatDetails;
         }
 
-        // Method to add a new show
-        public void AddShow(Show show)
+        public void AddShow(ShowDetails showDetails)
         {
-            // Add the show to the Shows DbSet and save the changes to the database
-            _theaterServiceContext.Shows.Add(show);
+            _theaterServiceContext.Shows.Add(
+                new Show
+                {
+                    Title = showDetails.Title,
+                    StartTime = showDetails.StartTime,
+                    EndTime = showDetails.EndTime,
+                    City = showDetails.City,
+                    TheaterName = showDetails.TheaterName
+                });
             _theaterServiceContext.SaveChanges();
         }
 
         public Show GetShowById(int showId)
         {
-            return _theaterServiceContext.Shows.Where(s => s.ShowId == showId).First();
+            return _theaterServiceContext.Shows
+                .Where(s => s.ShowId == showId)
+                .Include(s => s.Seats)
+                .Include(s => s.Bookings)
+                .First();
         }
     }
 }

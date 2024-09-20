@@ -1,6 +1,6 @@
-﻿namespace TheaterService.Models
+﻿namespace TheaterService.DTO
 {
-    public class Booking
+    public class BookingDetails
     {
         public int BookingId { get; set; }
         public DateTime BookingTime { get; set; }
@@ -9,8 +9,5 @@
         public int UserId { get; set; }
         public int ShowId { get; set; }
         public int SeatId { get; set; }
-        public User User { get; set; }
-        public Show Show { get; set; }
-        public Seat Seat { get; set; }
     }
 }

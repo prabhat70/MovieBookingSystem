@@ -1,6 +1,6 @@
-﻿namespace MovieBookingSystem.Authentication.DTO
+﻿namespace UserService.DTO
 {
-    public class UserDetails
+    public class UserRegistration
     {
         public string Name { get; set; }
         public string Email { get; set; }

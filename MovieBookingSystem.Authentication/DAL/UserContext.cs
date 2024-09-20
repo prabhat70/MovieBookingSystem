@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MovieBookingSystem.Authentication.Models;
+using UserService.Models;
 
-namespace MovieBookingSystem.Authentication.Authentication
+namespace UserService.DAL
 {
     public class UserContext : DbContext
     {

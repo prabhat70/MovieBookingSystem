@@ -1,28 +1,24 @@
 ﻿using BookingService.DAL;
+using BookingService.DTO;
+using BookingService.IRepository;
 using BookingService.Models;
-using MovieBookingSystem.TheaterService.IRepository;
-using MovieBookingSystem.TheaterService.Repository;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookingService.Repository
 {
-    public class BookingRepository
+    public class BookingRepository : IBookingRepository
     {
         private readonly BookingContext _bookingContext;
-        private readonly ITheaterRepository _theaterService;
 
-        public BookingRepository(BookingContext bookingContext, ITheaterRepository theaterService)
+        public BookingRepository(BookingContext bookingContext)
         {
             _bookingContext = bookingContext;
-            _theaterService = theaterService;
         }
 
-        // Book a ticket for a user
         public bool BookTicket(int userId, int showId, int seatId)
         {
-            // Check if the seat is available via Theater Service
-            if (_theaterService.ReserveSeat(showId, seatId))
+            if (ReserveSeat(showId, seatId))
             {
-                // Create a booking record
                 var booking = new Booking
                 {
                     UserId = userId,
@@ -37,32 +33,97 @@ namespace BookingService.Repository
             return false;
         }
 
-        // Cancel a ticket by bookingId
         public bool CancelTicket(int bookingId)
         {
-            var booking = _context.Bookings.FirstOrDefault(b => b.BookingId == bookingId && !b.IsCanceled);
+            var booking = _bookingContext.Bookings
+                .FirstOrDefault(b => b.BookingId == bookingId && !b.IsCanceled);
             if (booking != null)
             {
-                if (_theaterService.CancelReservation(booking.ShowId, booking.SeatId))
+                if (CancelReservation(booking.ShowId, booking.SeatId))
                 {
                     booking.IsCanceled = true;
-                    _context.SaveChanges();
+                    _bookingContext.SaveChanges();
                     return true;
                 }
             }
             return false;
         }
 
-        // Check seat availability for a particular show
-        public List<SeatAvailability> CheckSeatAvailability(int showId)
+        public bool ReserveSeat(int showId, int seatId)
         {
-            var availableSeats = _theaterService.GetAvailableSeats(showId);
-            return availableSeats.Select(s => new SeatAvailability
+            var seat = _bookingContext.Seats
+                .FirstOrDefault(s => s.SeatId == seatId && s.ShowId == showId && s.IsAvailable);
+            if (seat != null)
             {
-                ShowId = showId,
+                seat.IsAvailable = false;
+                _bookingContext.SaveChanges();
+                return true;
+            }
+            return false;
+        }
+
+        public bool CancelReservation(int showId, int seatId)
+        {
+            var seat = _bookingContext.Seats
+                .FirstOrDefault(s => s.SeatId == seatId && s.ShowId == showId && !s.IsAvailable);
+            if (seat != null)
+            {
+                seat.IsAvailable = true;
+                _bookingContext.SaveChanges();
+                return true;
+            }
+            return false;
+        }
+
+        public List<SeatDetails> GetAvailableSeats(int showId)
+        {
+            var availableSeats = _bookingContext.Seats
+                .Where(s => s.ShowId == showId && s.IsAvailable)
+                .ToList();
+            var seatDetails = availableSeats.Select(s => new SeatDetails
+            {
                 SeatId = s.SeatId,
+                Row = s.Row,
+                Number = s.Number,
                 IsAvailable = s.IsAvailable
             }).ToList();
+            return seatDetails;
+        }
+
+        public List<Booking> GetUpcomingBooking(int userId)
+        {
+            var upcomingBookings = _bookingContext.Bookings
+                .Where(b => b.UserId == userId && b.Show.StartTime > DateTime.Now && !b.IsCanceled)
+                .Include(b => b.Show)
+                .Include(b => b.Seat)
+                .ToList();
+            return upcomingBookings;
+        }
+
+        public List<Booking> GetBookingHistory(int userId)
+        {
+            var bookingHistory=_bookingContext.Bookings
+                .Where(b=>b.UserId==userId && (b.Show.StartTime<=DateTime.Now || b.IsCanceled))
+                .Include(b => b.Show)
+                .Include(b => b.Seat)
+                .ToList();
+            return bookingHistory;
+        }
+
+        public List<ShowDetails> GetListedShow(string city)
+        {
+            var listedShow = _bookingContext.Shows
+                .Where(s => s.City.ToLower().Equals(city.ToLower()) && s.StartTime >= DateTime.Now)
+                .ToList();
+            var showDetails = listedShow.Select(show => new ShowDetails
+            {
+                Title = show.Title,
+                StartTime = show.StartTime,
+                EndTime = show.EndTime,
+                TheaterName = show.TheaterName,
+                City = show.City
+            }).ToList();
+            return showDetails;
         }
     }
 }
